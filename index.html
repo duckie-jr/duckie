@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Motion Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e27;
+            font-family: 'Courier New', monospace;
+            color: #00ff41;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+        }
+
+        #videoStream {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        #frameCanvas {
+            display: none;
+        }
+
+        #heatmapCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 8;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        .menu {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.70);
+            border: 1px solid #00ff41;
+            padding: 8px;
+            z-index: 10;
+            max-height: 90vh;
+            overflow-y: auto;
+            max-width: 240px;
+            border-radius: 3px;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #00ff41;
+            gap: 4px;
+        }
+
+        .menu-title {
+            color: #00ff41;
+            font-weight: bold;
+            font-size: clamp(10px, 3vw, 12px);
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #00ff41;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: transform 0.3s;
+            font-weight: bold;
+            touch-action: manipulation;
+            flex-shrink: 0;
+        }
+
+        .menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .menu-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .menu-content {
+            max-height: 500px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .menu-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .menu-section {
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+        }
+
+        .menu-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-label {
+            color: #0055ff;
+            font-size: clamp(8px, 2.5vw, 9px);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .hud-item {
+            margin: 4px 0;
+            font-size: clamp(9px, 2.5vw, 10px);
+            letter-spacing: 0.3px;
+        }
+
+        .label {
+            color: #0055ff;
+            font-weight: bold;
+        }
+
+        .value {
+            color: #00ff41;
+            float: right;
+        }
+
+        .bar {
+            width: 100%;
+            height: clamp(8px, 2vh, 12px);
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            margin-top: 2px;
+            overflow: hidden;
+            border-radius: 1px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+            background: #00ff41;
+        }
+
+        .bar-fill.high {
+            background: #ff0055;
+        }
+
+        .menu-item {
+            margin: 4px 0;
+            font-size: clamp(9px, 2.5vw, 10px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 32px;
+            padding: 2px 0;
+        }
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #00ff41;
+            min-width: 14px;
+        }
+
+        label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .menu-stat {
+            margin: 4px 0;
+            font-size: clamp(8px, 2.5vw, 9px);
+            color: #00ff41;
+            padding: 4px 6px;
+            background: rgba(0, 255, 65, 0.05);
+            border-left: 2px solid #0055ff;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-button {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(8px, 2.5vw, 9px);
+            font-weight: bold;
+            background: rgba(0, 255, 65, 0.1);
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-height: 32px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .menu-button:active {
+            background: rgba(0, 255, 65, 0.3);
+            transform: scale(0.98);
+        }
+
+        .menu-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 2px);
+        }
+
+        /* Very small screens */
+        @media (max-width: 380px) {
+            .menu {
+                padding: 6px;
+                max-width: 320px;
+            }
+
+            .menu-title {
+                font-size: 10px;
+            }
+
+            .menu-button {
+                padding: 6px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="videoStream" autoplay playsinline></video>
+        <canvas id="frameCanvas"></canvas>
+        <canvas id="heatmapCanvas"></canvas>
+        <div class="scanlines"></div>
+
+        <div class="menu">
+            <div class="menu-header">
+                <div class="menu-title">MOTION DETECTOR</div>
+                <button id="toggleMenuBtn" class="menu-toggle">▼</button>
+            </div>
+
+            <div id="menuContent" class="menu-content">
+                <div class="menu-section">
+                    <div class="section-label">Status</div>
+                    <div class="hud-item">
+                        <span class="label">STATE:</span>
+                        <span class="value" id="status">READY</span>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">Metrics</div>
+                    <div class="hud-item">
+                        <span class="label">MOTION:</span>
+                        <span class="value" id="motionPercent">0%</span>
+                        <div class="bar"><div class="bar-fill" id="motionFill"></div></div>
+                    </div>
+                    <div class="hud-item">
+                        <span class="label">SUS:</span>
+                        <span class="value" id="suspiciousPercent">0%</span>
+                        <div class="bar"><div class="bar-fill" id="suspiciousFill"></div></div>
+                    </div>
+                    <div class="menu-stat"><span style="color: #0055ff;">FPS</span> <span id="fps">0</span></div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">Heat</div>
+                    <div class="menu-item">
+                        <input type="checkbox" id="toggleHeatmap">
+                        <label for="toggleHeatmap">ON</label>
+                    </div>
+                    <div class="menu-stat"><span style="color: #0055ff;">ZONES</span> <span id="zoneCount">0</span></div>
+                    <div class="menu-stat"><span style="color: #0055ff;">MAX</span> <span id="maxHeat">0%</span></div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">Audio</div>
+                    <div class="menu-item">
+                        <input type="checkbox" id="toggleSound" checked>
+                        <label for="toggleSound">ON</label>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">Controls</div>
+                    <button id="toggleCameraBtn" class="menu-button">SWITCH CAM</button>
+                    <button id="fullscreenBtn" class="menu-button">FULLSCREEN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MotionDetector {
+            constructor() {
+                this.video = document.getElementById('videoStream');
+                this.canvas = document.getElementById('frameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.heatmapCanvas = document.getElementById('heatmapCanvas');
+                this.heatmapCtx = this.heatmapCanvas.getContext('2d', { alpha: true });
+                
+                this.motionFill = document.getElementById('motionFill');
+                this.motionPercent = document.getElementById('motionPercent');
+                this.suspiciousFill = document.getElementById('suspiciousFill');
+                this.suspiciousPercent = document.getElementById('suspiciousPercent');
+                this.statusHud = document.getElementById('status');
+                this.fpsDisplay = document.getElementById('fps');
+                this.zoneCount = document.getElementById('zoneCount');
+                this.maxHeatDisplay = document.getElementById('maxHeat');
+                this.toggleCameraBtn = document.getElementById('toggleCameraBtn');
+                this.fullscreenBtn = document.getElementById('fullscreenBtn');
+                this.toggleHeatmap = document.getElementById('toggleHeatmap');
+                this.toggleSound = document.getElementById('toggleSound');
+                this.toggleMenuBtn = document.getElementById('toggleMenuBtn');
+                this.menuContent = document.getElementById('menuContent');
+                
+                this.currentFacingMode = 'user';
+                this.motionLevel = 0;
+                this.suspicionLevel = 0;
+                this.lastFrameData = null;
+                this.frameCount = 0;
+                this.fps = 0;
+                this.lastTime = Date.now();
+                this.motionHistory = [];
+                this.heatGrid = Array(32).fill(null).map(() => Array(18).fill(0));
+                this.showHeatmap = false;
+                this.soundEnabled = true;
+                
+                this.audioContext = null;
+                this.oscillator = null;
+                this.gainNode = null;
+                this.isAudioInitialized = false;
+                
+                this.init();
+            }
+
+            initAudio() {
+                if (this.isAudioInitialized) return;
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.audioContext = new AudioContext();
+                    this.oscillator = this.audioContext.createOscillator();
+                    this.gainNode = this.audioContext.createGain();
+                    this.oscillator.connect(this.gainNode);
+                    this.gainNode.connect(this.audioContext.destination);
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.value = 200;
+                    this.gainNode.gain.value = 0.001;
+                    this.oscillator.start();
+                    this.isAudioInitialized = true;
+                } catch (e) {
+                    console.log('Audio failed');
+                }
+            }
+
+            updateAudio() {
+                if (!this.soundEnabled) return;
+                if (!this.isAudioInitialized) this.initAudio();
+                if (this.oscillator && this.gainNode) {
+                    this.oscillator.frequency.setValueAtTime(200 + (this.suspicionLevel / 100) * 1800, this.audioContext.currentTime);
+                }
+            }
+
+            async init() {
+                try {
+                    await this.startCamera(this.currentFacingMode);
+                    this.setupListeners();
+                    this.detectMotion();
+                    this.updateMetrics();
+                } catch (error) {
+                    this.statusHud.textContent = 'FAILED';
+                }
+            }
+
+            async startCamera(facingMode) {
+                if (this.video.srcObject) {
+                    this.video.srcObject.getTracks().forEach(track => track.stop());
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                this.video.srcObject = stream;
+            }
+
+            setupListeners() {
+                this.toggleCameraBtn.addEventListener('click', () => this.switchCamera());
+                this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                this.toggleMenuBtn.addEventListener('click', () => {
+                    this.menuContent.classList.toggle('collapsed');
+                    this.toggleMenuBtn.classList.toggle('collapsed');
+                });
+                this.toggleHeatmap.addEventListener('change', (e) => {
+                    this.showHeatmap = e.target.checked;
+                    if (!this.showHeatmap) {
+                        this.heatmapCanvas.width = 0;
+                    }
+                });
+                this.toggleSound.addEventListener('change', (e) => {
+                    this.soundEnabled = e.target.checked;
+                    if (this.soundEnabled && !this.isAudioInitialized) this.initAudio();
+                    else if (!this.soundEnabled && this.gainNode) {
+                        this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    }
+                });
+                document.addEventListener('click', () => this.initAudio(), { once: true });
+                document.addEventListener('touchstart', () => this.initAudio(), { once: true });
+            }
+
+            calculateSuspicion() {
+                if (this.motionHistory.length < 2) return 0;
+                const recent = this.motionHistory.slice(-20);
+                const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
+                let suspicion = (avg / 100) * 60 + (this.motionLevel / 100) * 35;
+                const delta = Math.abs(this.motionLevel - (this.motionHistory[this.motionHistory.length - 2] || 0));
+                suspicion += (delta / 100) * 30;
+                return Math.min(100, suspicion);
+            }
+
+            getHeatmapColor(intensity) {
+                if (intensity < 0.25) {
+                    const t = intensity / 0.25;
+                    return { r: 0, g: Math.round(100 + 155 * t), b: 255 };
+                } else if (intensity < 0.5) {
+                    const t = (intensity - 0.25) / 0.25;
+                    return { r: 0, g: 255, b: Math.round(255 * (1 - t)) };
+                } else if (intensity < 0.75) {
+                    const t = (intensity - 0.5) / 0.25;
+                    return { r: Math.round(255 * t), g: 255, b: 0 };
+                }
+                const t = (intensity - 0.75) / 0.25;
+                return { r: 255, g: Math.round(255 * (1 - t)), b: 0 };
+            }
+
+            detectMotion() {
+                if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
+                    if (!this.canvas.width) {
+                        this.canvas.width = 160;
+                        this.canvas.height = 90;
+                    }
+
+                    this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                    const frameData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+                    let motionLevel = 0;
+
+                    for (let x = 0; x < 32; x++) {
+                        for (let y = 0; y < 18; y++) {
+                            this.heatGrid[x][y] *= 0.85;
+                        }
+                    }
+
+                    if (this.lastFrameData) {
+                        let pixelDiff = 0;
+                        const cellW = this.canvas.width / 32;
+                        const cellH = this.canvas.height / 18;
+
+                        for (let gy = 0; gy < 18; gy++) {
+                            for (let gx = 0; gx < 32; gx++) {
+                                let cellMotion = 0;
+                                const sx = Math.floor(gx * cellW);
+                                const sy = Math.floor(gy * cellH);
+                                const ex = Math.floor((gx + 1) * cellW);
+                                const ey = Math.floor((gy + 1) * cellH);
+
+                                for (let y = sy; y < ey; y++) {
+                                    for (let x = sx; x < ex; x++) {
+                                        const idx = (y * this.canvas.width + x) * 4;
+                                        const diff = (Math.abs(frameData[idx] - this.lastFrameData[idx]) +
+                                                     Math.abs(frameData[idx + 1] - this.lastFrameData[idx + 1]) +
+                                                     Math.abs(frameData[idx + 2] - this.lastFrameData[idx + 2])) / 3;
+                                        if (diff > 15) {
+                                            cellMotion++;
+                                            pixelDiff++;
+                                        }
+                                    }
+                                }
+
+                                const cellPixels = (ex - sx) * (ey - sy);
+                                this.heatGrid[gx][gy] = Math.max(this.heatGrid[gx][gy], Math.min(1, cellMotion / (cellPixels * 0.25)));
+                            }
+                        }
+                        motionLevel = Math.min((pixelDiff / (this.canvas.width * this.canvas.height / 16)) * 150, 100);
+                    }
+
+                    this.motionLevel += (motionLevel - this.motionLevel) * 0.2;
+                    if (motionLevel < 5) this.motionLevel *= 0.9;
+                    this.motionLevel = Math.max(0, Math.min(100, this.motionLevel));
+
+                    this.motionHistory.push(this.motionLevel);
+                    if (this.motionHistory.length > 30) this.motionHistory.shift();
+
+                    this.suspicionLevel += (this.calculateSuspicion() - this.suspicionLevel) * 0.4;
+                    this.updateAudio();
+
+                    this.motionFill.style.width = this.motionLevel + '%';
+                    this.motionPercent.textContent = Math.round(this.motionLevel) + '%';
+                    this.suspiciousFill.style.width = this.suspicionLevel + '%';
+                    this.suspiciousPercent.textContent = Math.round(this.suspicionLevel) + '%';
+
+                    let maxHeat = 0;
+                    let activeZones = 0;
+                    for (let x = 0; x < 32; x++) {
+                        for (let y = 0; y < 18; y++) {
+                            maxHeat = Math.max(maxHeat, this.heatGrid[x][y]);
+                            if (this.heatGrid[x][y] > 0.1) activeZones++;
+                        }
+                    }
+                    this.zoneCount.textContent = activeZones;
+                    this.maxHeatDisplay.textContent = Math.round(maxHeat * 100) + '%';
+
+                    if (this.showHeatmap) {
+                        this.drawHeatmap();
+                    }
+
+                    if (this.suspicionLevel > 60) {
+                        this.statusHud.textContent = 'HIGHLY SUS';
+                        this.suspiciousFill.classList.add('high');
+                    } else if (this.suspicionLevel > 35) {
+                        this.statusHud.textContent = 'SUS';
+                        this.suspiciousFill.classList.remove('high');
+                    } else if (this.motionLevel > 15) {
+                        this.statusHud.textContent = 'NOT SUS';
+                        this.suspiciousFill.classList.remove('high');
+                    } else {
+                        this.statusHud.textContent = 'READY';
+                        this.suspiciousFill.classList.remove('high');
+                    }
+
+                    this.lastFrameData = new Uint8ClampedArray(frameData);
+                }
+                requestAnimationFrame(() => this.detectMotion());
+            }
+
+            drawHeatmap() {
+                if (this.heatmapCanvas.width !== window.innerWidth) {
+                    this.heatmapCanvas.width = window.innerWidth;
+                    this.heatmapCanvas.height = window.innerHeight;
+                }
+
+                this.heatmapCtx.clearRect(0, 0, this.heatmapCanvas.width, this.heatmapCanvas.height);
+                const cellW = window.innerWidth / 32;
+                const cellH = window.innerHeight / 18;
+
+                for (let x = 0; x < 32; x++) {
+                    for (let y = 0; y < 18; y++) {
+                        const intensity = this.heatGrid[x][y];
+                        if (intensity > 0.02) {
+                            const color = this.getHeatmapColor(intensity);
+                            const alpha = Math.min(0.85, intensity * 0.9);
+                            this.heatmapCtx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+                            this.heatmapCtx.fillRect(x * cellW, y * cellH, cellW, cellH);
+                        }
+                    }
+                }
+            }
+
+            updateMetrics() {
+                this.frameCount++;
+                const now = Date.now();
+                if (now - this.lastTime >= 1000) {
+                    this.fps = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastTime = now;
+                    this.fpsDisplay.textContent = this.fps;
+                }
+                requestAnimationFrame(() => this.updateMetrics());
+            }
+
+            async switchCamera() {
+                try {
+                    this.toggleCameraBtn.disabled = true;
+                    this.currentFacingMode = this.currentFacingMode === 'user' ? 'environment' : 'user';
+                    await this.startCamera(this.currentFacingMode);
+                    this.toggleCameraBtn.disabled = false;
+                } catch (e) {
+                    this.toggleCameraBtn.disabled = false;
+                }
+            }
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => new MotionDetector());
+        } else {
+            new MotionDetector();
+        }
+    </script>
+</body>
+</html>
