@@ -1,0 +1,9 @@
+{
+  "name": "Duckie Jr",
+  "short_name": "Duckie",
+  "description": "Things I've made",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000",
+  "theme_color": "#00ff00"
+}
