@@ -1,0 +1,90 @@
+<!-- language: html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{
+      margin:0;padding:80px 40px;background:#000;color:#00ff00;font-family:Inter,system-ui,sans-serif;
+      text-align:center;line-height:1.6;font-size:18px;
+    }
+    h1{font-size:44px;margin-bottom:60px;font-weight:600;letter-spacing:-1px;}
+    .projects{margin-top:40px;}
+    a{
+      display:block;color:#00ff00;text-decoration:none;margin:16px 0;font-weight:500;
+      transition:0.2s;position:relative;font-size:18px;
+    }
+    a:hover{opacity:0.7;}
+    a:hover::after{
+      content:attr(data-desc);position:fixed;top:120px;left:40px;
+      background:#0a0a0a;border:1px solid #00ff00;padding:16px 20px;
+      font-size:14px;color:#b0b0b0;white-space:normal;width:300px;opacity:1;
+      pointer-events:none;z-index:10;line-height:1.6;
+    }
+    .notif-container{position:fixed;top:20px;right:20px;z-index:100;}
+    .notification{
+      background:#0a0a0a;border:1px solid #00ff00;color:#00ff00;padding:12px 16px;
+      margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;
+      font-size:13px;min-width:200px;
+    }
+    .close{background:none;border:none;color:#00ff00;cursor:pointer;font-size:16px;font-weight:bold;padding:0;margin-left:12px;}
+    .close:hover{opacity:0.7;}
+  </style>
+</head>
+<body>
+  <div class="notif-container" id="notifs"></div>
+
+  <h1>My Work</h1>
+  
+  <div class="projects">
+    <a href="https://yourapp.com" data-desc="Motion detection system with heat map overlay. Tracks movement in real-time, analyzes suspicion levels, generates audio feedback, and displays live metrics. Works on mobile and desktop.">Motion Detector</a>
+    <a href="https://example.com" data-desc="Design portfolio showcasing a collection of work across web, mobile, and branding. Features interactive elements and a responsive layout that actually works on all devices.">Project Two</a>
+    <a href="https://example.com" data-desc="API documentation site with detailed endpoints, examples, and error handling guides. Spent way too long making this look pretty but at least it's useful.">Project Three</a>
+    <a href="https://example.com" data-desc="Mobile app prototype exploring new UI patterns and interactions. Crashes occasionally but that's part of the charm. Progressive web app technology at its finest.">Project Four</a>
+  </div>
+
+  <script>
+    const notifContainer = document.getElementById('notifs');
+
+    const notifications = [
+      'I don\'t remember writing this',
+      'Everything is broken and it\'s my fault',
+      'This code is a cry for help',
+      'I\'ve made terrible life choices',
+      'The void stares back',
+      'My sanity left with that bug',
+      'This will be my legacy',
+      'I am not okay',
+      'Don\'t run this at 3am',
+      'The error messages mock me',
+      'I\'ve seen things no programmer should see',
+      'Production is a graveyard',
+      'This code will outlive us all',
+      'I sold my soul for deadlines',
+      'The stack trace never ends',
+      'I\'m trapped in an infinite loop',
+      'Help me',
+      'This is what burnout looks like',
+      'I forgot what sleep is',
+      'Dear God, what have I created'
+    ];
+
+    function addNotification(text) {
+      const notif = document.createElement('div');
+      notif.className = 'notification';
+      notif.innerHTML = `${text}<button class="close">×</button>`;
+      notifContainer.appendChild(notif);
+      
+      notif.querySelector('.close').onclick = () => notif.remove();
+    }
+
+    notifications.forEach(notif => {
+      const randomDelay = Math.random() * (10 * 60 * 1000 - 1000) + 1000;
+      setTimeout(() => addNotification(notif), randomDelay);
+    });
+  </script>
+</body>
+</html>
