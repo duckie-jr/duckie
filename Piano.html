@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width,initial-scale=1"/>
+      <meta name="theme-color" content="#000"/>
+      <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2300ff00' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%2300ff00' stroke-width='1.5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%2300ff00'/%3E%3Cline x1='32' y1='0' x2='32' y2='14' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='32' y1='50' x2='32' y2='64' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='0' y1='32' x2='14' y2='32' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='50' y1='32' x2='64' y2='32' stroke='%2300ff00' stroke-width='2.5'/%3E%3C/svg%3E"/>
+      <link rel="manifest" href="./manifest.json"/>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+      <title>Piano Composer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #0f0; padding: 8px; line-height: 1.2; font-size: 12px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 8px; color: #0f0; white-space: pre; font-size: 0.4em; line-height: 1.1; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .box { border: 2px solid #0f0; padding: 8px; background: #111; }
+        h2 { color: #0f0; margin-bottom: 6px; font-size: 0.9em; }
+        .keyboard { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 8px; }
+        .key { padding: 6px 4px; background: #222; border: 1px solid #0f0; color: #0f0; cursor: pointer; font-weight: bold; transition: 0.1s; font-size: 0.9em; }
+        .key:hover { background: #0f0; color: #000; }
+        .key:active { background: #0a0; }
+        .key[data-note="0"] { background: #333; border: 1px solid #666; color: #666; }
+        .key[data-note="0"]:hover { background: #444; color: #0f0; }
+        input, button { padding: 4px 6px; background: #222; border: 1px solid #0f0; color: #0f0; font-family: monospace; cursor: pointer; transition: 0.1s; margin-bottom: 4px; font-size: 0.85em; }
+        input { width: 100%; }
+        button:hover { background: #0f0; color: #000; }
+        .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .button-row button { margin: 0; }
+        .btn-save { grid-column: 1 / -1; }
+        .toggle-zeros { padding: 4px 8px; background: #333; border: 1px solid #666; color: #666; font-size: 0.75em; margin-bottom: 4px; width: 100%; }
+        .toggle-zeros:hover { background: #444; }
+        .toggle-zeros.active { background: #0f0; color: #000; }
+        .sequence { background: #111; border: 1px solid #0f0; padding: 6px; min-height: 50px; margin-bottom: 6px; }
+        .notes { display: flex; flex-wrap: wrap; gap: 3px; }
+        .note { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #222; border: 1px solid #0f0; cursor: pointer; color: #0f0; font-weight: bold; font-size: 0.85em; }
+        .note[data-note="0"] { background: #333; border: 1px solid #666; color: #666; }
+        .note:hover { background: #0f0; color: #000; }
+        .note[data-note="0"]:hover { background: #444; color: #0f0; }
+        .info { color: #666; font-size: 0.8em; margin-top: 4px; }
+        .search-box { display: flex; gap: 4px; margin-bottom: 8px; }
+        #searchBar { flex: 1; font-size: 0.85em; }
+        .songs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+        .song-card { background: #222; border: 1px solid #0f0; padding: 6px; }
+        .song-title { color: #0f0; font-weight: bold; margin-bottom: 3px; font-size: 0.85em; }
+        .song-notes { background: #111; padding: 3px; font-size: 0.75em; color: #666; margin-bottom: 4px; overflow-x: auto; }
+        .song-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+        .song-card.sample .song-buttons { grid-template-columns: 1fr 1fr; }
+        .song-buttons button { margin: 0; padding: 3px 4px; font-size: 0.75em; }
+        .sample { border-left: 3px solid #666; }
+        .full-width { grid-column: 1 / -1; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; padding: 6px; background: #111; border: 1px solid #0f0; }
+        .stat { text-align: center; }
+        .stat-num { color: #0f0; font-weight: bold; font-size: 0.95em; }
+        .stat-label { color: #666; font-size: 0.7em; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .full-width { grid-column: 1; } .songs-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>\ /
+oVo
+\___XXX___/
+__XXXXX_
+/__XXXXX__\
+/   XXX   \
+V</h1>
+
+        <div class="grid">
+            <div class="box">
+                <h2>>>> COMPOSER</h2>
+                <div class="keyboard">
+                    <button class="key" data-note="1">1</button>
+                    <button class="key" data-note="2">2</button>
+                    <button class="key" data-note="3">3</button>
+                    <button class="key" data-note="4">4</button>
+                    <button class="key" data-note="5">5</button>
+                    <button class="key" data-note="6">6</button>
+                    <button class="key" data-note="7">7</button>
+                    <button class="key" data-note="0">BREAK</button>
+                </div>
+                <button id="toggleZeros" class="toggle-zeros">hide 0s</button>
+                <input type="text" id="songName" placeholder="song name">
+                <div class="button-row">
+                    <button id="playBtn">PLAY</button>
+                    <button id="clearBtn">CLEAR</button>
+                </div>
+                <button id="saveBtn" class="btn-save">SAVE</button>
+                <div class="sequence">
+                    <div class="notes" id="notes"></div>
+                </div>
+                <div class="info" id="info"></div>
+            </div>
+
+            <div class="box">
+                <h2>>>> STATS</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-num" id="noteCount">0</div>
+                        <div class="stat-label">NOTES</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num" id="duration">0s</div>
+                        <div class="stat-label">TIME</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num" id="savedCount">0</div>
+                        <div class="stat-label">SAVED</div>
+                    </div>
+                </div>
+                <h2 style="margin-top: 8px;">>>> YOUR SONGS</h2>
+                <div id="userSongs" style="max-height: 300px; overflow-y: auto; font-size: 0.8em;"></div>
+            </div>
+
+            <div class="box full-width">
+                <h2>>>> LIBRARY</h2>
+                <div class="search-box">
+                    <input type="text" id="searchBar" placeholder="search...">
+                </div>
+                <div class="songs-grid" id="songsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NOTES = { 1: 261.63, 2: 293.66, 3: 329.63, 4: 349.23, 5: 392.00, 6: 440.00, 7: 493.88 };
+        let showZeros = false;
+
+        const SAMPLES = [
+            { name: 'Mary Had Lamb', seq: [3, 2, 1, 0, 2, 3, 3, 0, 3, 2, 2, 0, 2, 3, 5, 0] },
+            { name: 'Twinkle Twinkle', seq: [1, 1, 0, 5, 5, 0, 6, 6, 5, 0, 4, 4, 3, 0, 3, 2, 2, 0, 1] },
+            { name: 'Row Row Row Boat', seq: [1, 0, 1, 0, 1, 2, 3, 0, 3, 4, 5, 0, 7, 6, 5, 4, 0, 3, 2, 1] },
+            { name: 'Seven Nation Army', seq: [3, 0, 3, 0, 3, 6, 7, 0, 3, 0, 3, 0, 3, 6, 7, 0, 3, 0, 3, 5, 3, 0, 2, 1] },
+            { name: 'Happy Birthday', seq: [3, 3, 0, 4, 3, 0, 6, 5, 0, 3, 3, 0, 4, 3, 0, 7, 6] },
+            { name: 'Do Re Mi', seq: [1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7] },
+            { name: 'Smoke on Water', seq: [3, 3, 0, 6, 7, 0, 3, 3, 0, 6, 7, 0, 3, 3, 0, 6, 7, 5, 4] },
+            { name: 'Ode to Joy', seq: [3, 3, 4, 5, 0, 5, 4, 3, 0, 2, 2, 3, 4, 0, 3, 3, 3, 0, 3, 4, 5] },
+            { name: 'Jingle Bells', seq: [3, 3, 3, 0, 3, 3, 3, 0, 3, 5, 1, 0, 2, 3] },
+            { name: 'Simple Beep', seq: [5, 0, 5, 0, 5, 3, 0, 5, 0, 6, 7] }
+        ];
+
+        let current = [];
+        let saved = JSON.parse(localStorage.getItem('songs')) || [];
+        let playing = false;
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function tone(freq, dur = 0.3) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + dur);
+        }
+
+        function add(n) { current.push(n); draw(); if (n !== 0) tone(NOTES[n], 0.2); }
+        function del(i) { current.splice(i, 1); draw(); }
+        function draw() {
+            const c = document.getElementById('notes');
+            if (current.length) {
+                const displayed = showZeros ? current : current.filter(n => n !== 0);
+                c.innerHTML = displayed.map((n, i) => {
+                    const actualIndex = showZeros ? i : current.indexOf(current[current.reduce((count, note, idx) => count + (note !== 0 && idx <= i ? 1 : 0), 0) - 1]);
+                    return `<div class="note" data-note="${n}" onclick="del(${current.indexOf(n)})">${n}</div>`;
+                }).join('');
+            } else {
+                c.innerHTML = '<div style="color: #666; font-size: 0.8em;">click keys</div>';
+            }
+            document.getElementById('noteCount').textContent = current.length;
+            document.getElementById('duration').textContent = (current.length * 0.35).toFixed(1) + 's';
+            document.getElementById('info').textContent = current.length ? `${current.length} notes` : '';
+        }
+
+        function play(seq) {
+            if (playing) return;
+            playing = true;
+            let time = 0;
+            seq.forEach(n => {
+                if (n === 0) {
+                    time += 350;
+                } else {
+                    setTimeout(() => tone(NOTES[n], 0.4), time);
+                    time += 350;
+                }
+            });
+            setTimeout(() => playing = false, time);
+        }
+
+        function load(seq) { current = [...seq]; draw(); play(seq); }
+        function clear_seq() { current = []; draw(); }
+        function save() {
+            const name = document.getElementById('songName').value || `Song ${saved.length + 1}`;
+            if (!current.length) { alert('empty'); return; }
+            saved.push({ id: Date.now(), name, seq: [...current] });
+            localStorage.setItem('songs', JSON.stringify(saved));
+            document.getElementById('songName').value = '';
+            current = [];
+            draw();
+            render_user();
+            document.getElementById('savedCount').textContent = saved.length;
+        }
+        function del_song(id) {
+            saved = saved.filter(s => s.id !== id);
+            localStorage.setItem('songs', JSON.stringify(saved));
+            render_user();
+            document.getElementById('savedCount').textContent = saved.length;
+        }
+
+        function toggleZeros() {
+            showZeros = !showZeros;
+            const btn = document.getElementById('toggleZeros');
+            btn.textContent = showZeros ? 'show 0s' : 'hide 0s';
+            btn.classList.toggle('active');
+            draw();
+        }
+
+        function render_user() {
+            const c = document.getElementById('userSongs');
+            if (!saved.length) { c.innerHTML = '<div style="color: #666; padding: 6px;">none</div>'; return; }
+            c.innerHTML = saved.slice().reverse().map(s => `
+                <div style="background: #111; border: 1px solid #0f0; padding: 4px; margin-bottom: 3px;">
+                    <div style="color: #0f0; font-weight: bold; font-size: 0.85em;">${s.name}</div>
+                    <div style="color: #666; font-size: 0.7em;">${s.seq.length} notes</div>
+                    <div style="display: flex; gap: 3px; margin-top: 3px;">
+                        <button onclick="play(${JSON.stringify(s.seq)})" style="flex: 1; padding: 3px; margin: 0; font-size: 0.7em;">PLAY</button>
+                        <button onclick="del_song(${s.id})" style="flex: 1; padding: 3px; margin: 0; font-size: 0.7em;">DEL</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function render_lib() {
+            const c = document.getElementById('songsGrid');
+            c.innerHTML = SAMPLES.map(s => `
+                <div class="song-card sample">
+                    <div class="song-title">${s.name}</div>
+                    <div class="song-notes">${s.seq.join(' ')}</div>
+                    <div class="song-buttons">
+                        <button onclick="play(${JSON.stringify(s.seq)})">PLAY</button>
+                        <button onclick="load(${JSON.stringify(s.seq)})">LOAD</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function search(q) {
+            const cards = document.querySelectorAll('.song-card');
+            const lower = q.toLowerCase();
+            cards.forEach(c => c.style.display = c.querySelector('.song-title').textContent.toLowerCase().includes(lower) ? '' : 'none');
+        }
+
+        document.querySelectorAll('.key').forEach(b => b.onclick = e => add(e.target.dataset.note));
+        document.getElementById('playBtn').onclick = () => current.length && play(current);
+        document.getElementById('clearBtn').onclick = clear_seq;
+        document.getElementById('saveBtn').onclick = save;
+        document.getElementById('toggleZeros').onclick = toggleZeros;
+        document.getElementById('searchBar').oninput = e => search(e.target.value);
+        
+        draw();
+        render_lib();
+        render_user();
+        document.getElementById('savedCount').textContent = saved.length;
+    </script>
+</body>
+</html>
