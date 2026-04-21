@@ -1,4 +1,4 @@
-import './style.css';
+import '../css/duckie-ai.css';
 
 const STORAGE_KEY = 'duckie_save';
 const SYSPROMPT_KEY = 'duckie_sysprompt';
