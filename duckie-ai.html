@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2300ff00' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%2300ff00' stroke-width='1.5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%2300ff00'/%3E%3Cline x1='32' y1='0' x2='32' y2='14' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='32' y1='50' x2='32' y2='64' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='0' y1='32' x2='14' y2='32' stroke='%2300ff00' stroke-width='2.5'/%3E%3Cline x1='50' y1='32' x2='64' y2='32' stroke='%2300ff00' stroke-width='2.5'/%3E%3C/svg%3E"/>
+    <link rel="manifest" href="./manifest.json"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap">
+    <link rel="stylesheet" href="/js/duckie-ai.css">
+    <script type="module" src="/js/duckie-ai.js"></script>
+    <title>Duckie AI</title>
+  </head>
+  <body>
+    <button id="sidebar-toggle">☰</button>
+    <div id="notification-container"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div id="app">
+      <div id="sidebar">
+        <button class="sidebar-close-btn" id="sidebar-close-btn">&times;</button>
+        <div class="sidebar-header">
+          <div class="logo">
+            <span class="logo-icon">&gt;_</span>
+            <span class="logo-text">Duckie AI</span>
+          </div>
+          <p class="tagline">WebLLM + Vision — all in your browser</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-item">
+            <span class="status-dot" id="llm-dot" data-state="loading"></span>
+            <span class="stat-label">LLM</span>
+            <span class="stat-value" id="status-text">Loading...</span>
+          </div>
+          <div class="stat-item">
+            <span class="status-dot" id="vision-dot" data-state="loading"></span>
+            <span class="stat-label">Vision</span>
+            <span class="stat-value" id="status-vision">Loading...</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Memory</span>
+            <span class="stat-value" id="memory-count">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Messages</span>
+            <span class="stat-value" id="msg-count">0</span>
+          </div>
+        </div>
+
+        <div id="progress-wrap" class="hidden">
+          <div id="progress-label">
+            <span id="progress-text">0%</span>
+          </div>
+          <div id="progress-track">
+            <div id="progress-bar"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" id="search-toggle">
+            <span>search</span><span class="panel-arrow">+</span>
+          </div>
+          <div class="panel-body hidden" id="search-panel">
+            <div class="panel-row">
+              <input type="text" id="search-input" placeholder="search messages..." />
+              <button id="search-btn" class="panel-btn green">[go]</button>
+            </div>
+            <div id="search-results"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" id="convos-toggle">
+            <span>conversations</span><span class="panel-arrow">+</span>
+          </div>
+          <div class="panel-body hidden" id="convos-panel">
+            <div class="panel-row">
+              <button id="new-convo-btn" class="panel-btn green">[new]</button>
+              <button id="save-convo-btn" class="panel-btn green">[save]</button>
+              <button id="clear-convo-btn" class="panel-btn green">[clear]</button>
+            </div>
+            <div id="convo-list"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" id="sysprompt-toggle">
+            <span>system prompt</span><span class="panel-arrow">+</span>
+          </div>
+          <div class="panel-body hidden" id="sysprompt-panel">
+            <textarea id="sysprompt-input" rows="5" placeholder="custom system prompt..."></textarea>
+            <div class="panel-row">
+              <button id="sysprompt-save-btn" class="panel-btn green">[save]</button>
+              <button id="sysprompt-reset-btn" class="panel-btn green">[reset]</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" id="stopwatch-toggle">
+            <span>stopwatch</span><span class="panel-arrow">+</span>
+          </div>
+          <div class="panel-body hidden" id="stopwatch-panel">
+            <div class="stopwatch-display" id="stopwatch-display">00:00.00</div>
+            <div class="panel-row">
+              <button id="stopwatch-start-btn" class="panel-btn green">[start]</button>
+              <button id="stopwatch-reset-btn" class="panel-btn green">[reset]</button>
+            </div>
+            <div id="stopwatch-laps"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" id="memory-toggle">
+            <span>memory</span><span class="panel-arrow">+</span>
+          </div>
+          <div class="panel-body hidden" id="memory-panel">
+            <div class="panel-row">
+              <input type="text" id="memory-input" placeholder="add memory..." />
+              <button id="add-memory-btn" class="panel-btn green">[+]</button>
+            </div>
+            <div id="memory-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chat-area">
+        <div id="messages"></div>
+        <div id="typing-indicator" class="hidden">
+          <span class="typing-line"></span><span class="typing-cursor"></span>
+        </div>
+        <form id="input-form">
+          <label id="image-upload-btn" title="Upload image for detection">
+            IMG
+            <input type="file" id="image-upload" accept="image/*" hidden />
+          </label>
+          <div id="input-clock">
+            <span id="input-clock-time">00:00:00</span>
+          </div>
+          <input type="text" id="user-input" placeholder="Chat with a real LLM or drop an image..." autocomplete="off" />
+          <button type="submit" id="send-btn">&gt;</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
