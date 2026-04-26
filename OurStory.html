@@ -2,33 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
-    <!--
-      viewport-fit=cover extends the page into the notch/safe area on
-      iPhones with a notch so the top bar fills edge to edge.
-    -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
 
-    <!-- Prevents iOS from auto-scaling text -->
     <meta name="format-detection" content="telephone=no" />
-
-    <!-- Colors the browser chrome / status bar on Android and iOS -->
     <meta name="theme-color" content="#0f172a" />
+
+    <!-- Current standard (replaces the deprecated apple-only version) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- Keep apple version alongside for older iOS compatibility -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="You &amp; Me" />
+    <meta name="apple-mobile-web-app-title" content="Our Story" />
 
-    <title>You &amp; Me</title>
+    <title>Our Story</title>
 
-    <!--
-      Google Fonts
-      - Playfair Display : romantic serif for headings and the brand name
-      - Lato             : clean sans-serif for all body / UI text
-      - Dancing Script   : cursive accent used in the sidebar footer
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -36,23 +26,13 @@
       rel="stylesheet"
     />
 
+    <!-- Updated path -->
     <link rel="stylesheet" href="./css/OurStory.css" />
   </head>
 
   <body>
 
-    <!-- ================================================================
-         MOBILE TOP BAR
-         Visible only on mobile (hidden on desktop via CSS media query).
-         Contains the hamburger toggle and the app name.
-    ================================================================ -->
     <header id="topbar" role="banner">
-
-      <!--
-        Hamburger button — JS toggles body.sidebar-open on click.
-        aria-expanded is updated by JS to reflect open/closed state.
-        aria-controls points to the sidebar for screen readers.
-      -->
       <button
         id="menu-toggle"
         class="hamburger-btn"
@@ -64,45 +44,19 @@
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
       </button>
-
-      <!-- App title repeated in topbar so it's always visible on mobile -->
       <div class="topbar-title" aria-hidden="true">
         <span class="topbar-heart">&#9829;</span>
-        You &amp; Me
+        Our Story
       </div>
-
     </header>
 
+    <div id="sidebar-overlay" aria-hidden="true" role="presentation"></div>
 
-    <!-- ================================================================
-         SIDEBAR OVERLAY
-         Full-screen dark backdrop that appears behind the open sidebar
-         on mobile. Clicking it closes the sidebar.
-         JS adds/removes body.sidebar-open which controls display.
-    ================================================================ -->
-    <div
-      id="sidebar-overlay"
-      aria-hidden="true"
-      role="presentation"
-    ></div>
-
-
-    <!-- ================================================================
-         SIDEBAR NAVIGATION
-         On mobile: fixed, slides in from left, sits above the overlay.
-         On desktop: static flex item, always visible.
-
-         JS dynamically:
-           - updates #nav-label-person1/2 text from state.personX.name
-           - toggles .active on the correct .nav-link after navigate()
-    ================================================================ -->
     <aside id="sidebar" aria-label="Site navigation">
 
-      <!-- Brand mark inside sidebar (visible on desktop; on mobile the
-           topbar shows the title instead) -->
       <div class="sidebar-brand">
         <span class="brand-heart" aria-hidden="true">&#9829;</span>
-        <span class="brand-name">You &amp; Me</span>
+        <span class="brand-name">Our Story</span>
       </div>
 
       <nav id="sidebar-nav" aria-label="Main menu">
@@ -112,10 +66,6 @@
           <span class="nav-label">Us</span>
         </a>
 
-        <!--
-          Person name labels are updated by JS from state — do not
-          hard-code names here. The id attributes are the JS hooks.
-        -->
         <a class="nav-link" data-section="person1" href="#">
           <span class="nav-icon" aria-hidden="true">&#9675;</span>
           <span class="nav-label" id="nav-label-person1">Person 1</span>
@@ -153,54 +103,15 @@
 
     </aside>
 
+    <main id="content" role="main" aria-live="polite"></main>
 
-    <!-- ================================================================
-         MAIN CONTENT PANEL
-         Entirely managed by JS — navigate() injects section HTML here.
-         aria-live="polite" tells screen readers content has changed
-         without interrupting speech.
-    ================================================================ -->
-    <main id="content" role="main" aria-live="polite">
-      <!--
-        Injected by src/main.js on DOMContentLoaded.
-        Do not place any content here — it will be overwritten immediately.
-      -->
-    </main>
+    <!-- Hidden utility inputs — outside #content so they survive re-renders -->
+    <input type="file" id="json-import-input" accept=".json,application/json" style="display:none;" />
+    <input type="file" id="photo-upload-person1" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" />
+    <input type="file" id="photo-upload-person2" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" />
 
-
-    <!-- ================================================================
-         HIDDEN UTILITY INPUTS
-         Placed outside #content so they survive section re-renders.
-         JS triggers .click() on them programmatically.
-    ================================================================ -->
-
-    <!-- JSON profile import -->
-    <input
-      type="file"
-      id="json-import-input"
-      accept=".json,application/json"
-      aria-label="Import profile from JSON file"
-      style="display: none;"
-    />
-
-    <!-- Photo uploads — one per person -->
-    <input
-      type="file"
-      id="photo-upload-person1"
-      accept="image/png,image/jpeg,image/webp,image/gif"
-      aria-label="Upload Person 1 profile photo"
-      style="display: none;"
-    />
-    <input
-      type="file"
-      id="photo-upload-person2"
-      accept="image/png,image/jpeg,image/webp,image/gif"
-      aria-label="Upload Person 2 profile photo"
-      style="display: none;"
-    />
-
-    <!-- Vite ES module entry point -->
-    <script type="module" src="./js/OurStory.js"></script>
+    <!-- Updated path, type="module" still valid for plain ES modules in browser -->
+    <script type="module" src="js/OurStory.js"></script>
 
   </body>
 </html>
