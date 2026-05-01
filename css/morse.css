@@ -562,6 +562,27 @@ body {
 .kb-space           { flex: 2; }
 .kb-clear:active    { color: var(--red); }
 
+/* ─── Keyboard size variants ─────────────── */
+/* S — compact */
+.kb-size-sm .pending-bar  { min-height: 26px; padding: 4px 12px; }
+.kb-size-sm .pend-syms    { font-size: 12px; }
+.kb-size-sm .pend-arrow   { font-size: 10px; }
+.kb-size-sm .pend-char    { font-size: 13px; }
+.kb-size-sm .kb-btn       { padding: 10px 0; min-height: 54px; gap: 3px; }
+.kb-size-sm .kb-sym       { font-size: 24px; }
+.kb-size-sm .kb-lbl       { font-size: 9px; }
+.kb-size-sm .kb-util-btn  { padding: 10px 0; min-height: 40px; font-size: 12px; }
+
+/* L — large */
+.kb-size-lg .pending-bar  { min-height: 44px; padding: 10px 12px; }
+.kb-size-lg .pend-syms    { font-size: 20px; }
+.kb-size-lg .pend-arrow   { font-size: 15px; }
+.kb-size-lg .pend-char    { font-size: 21px; }
+.kb-size-lg .kb-btn       { padding: 28px 0; min-height: 110px; gap: 6px; }
+.kb-size-lg .kb-sym       { font-size: 44px; }
+.kb-size-lg .kb-lbl       { font-size: 11px; }
+.kb-size-lg .kb-util-btn  { padding: 22px 0; min-height: 68px; font-size: 16px; }
+
 /* Hold-to-clear animation */
 .kb-clear.holding {
   color: var(--red);
