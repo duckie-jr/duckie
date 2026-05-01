@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/morse.css" />
+  <script type="module" src="./js/morse.js"></script>
+  <title>Morse</title>
+</head>
+<body>
+
+  <!-- ── Scrollable content ── -->
+  <div id="page">
+
+    <header class="topbar">
+      <span class="logo">MORSE</span>
+      <div class="topbar-right">
+        <button id="ref-toggle" class="topbar-btn">A–Z</button>
+        <button id="settings-btn" class="topbar-btn">⚙</button>
+      </div>
+    </header>
+
+    <!-- Collapsible reference index -->
+    <div id="ref-panel" class="ref-panel">
+      <div id="ref-content"></div>
+
+    </div>
+
+    <!-- Notes output -->
+    <div class="notes-section">
+      <div class="notes-meta">
+        <span id="char-count" class="char-count">0 chars</span>
+        <span id="wpm-display" class="meta-stat wpm">– wpm</span>
+        <button id="copy-btn" class="copy-btn">copy</button>
+      </div>
+      <div id="notes" class="notes sz-md">
+        <span class="notes-hint">tap the keys below…</span>
+      </div>
+      <div id="notes-morse" class="notes-morse"></div>
+    </div>
+
+  </div>
+
+  <!-- ── Settings overlay ── -->
+  <div id="settings-overlay" class="settings-overlay"></div>
+
+  <!-- ── Settings bottom-sheet ── -->
+  <div id="settings-panel" class="settings-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Settings</span>
+      <button id="settings-close" class="sheet-close">✕</button>
+    </div>
+
+    <div class="sheet-body">
+
+      <div class="setting-group">
+        <div class="group-label">Theme</div>
+        <div id="theme-grid" class="theme-grid"></div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-label">Sound</div>
+        <div class="setting-row">
+          <span>Enabled</span>
+          <button class="tog" id="tog-sound" data-on="true">ON</button>
+        </div>
+        <div class="setting-row" id="volume-row">
+          <span>Volume</span>
+          <div class="range-row">
+            <input id="vol-slider" type="range" min="0" max="100" value="80" />
+            <span id="vol-label">80%</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Pitch</span>
+          <div class="range-row">
+            <input id="pitch-slider" type="range" min="400" max="900" value="680" />
+            <span id="pitch-label">680 Hz</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Waveform</span>
+          <div class="wave-btns" id="wave-btns">
+            <button data-wave="sine" class="on">sine</button>
+            <button data-wave="square">square</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-label">Haptics</div>
+        <div class="setting-row">
+          <span>Vibrate on tap</span>
+          <button class="tog" id="tog-haptic" data-on="true">ON</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-label">Timing</div>
+        <div class="setting-row">
+          <span>Letter gap</span>
+          <div class="range-row">
+            <input id="delay-slider" type="range" min="3" max="30" value="10" />
+            <span id="delay-label">1.0s</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Auto word space</span>
+          <button class="tog" id="tog-autoword" data-on="true">ON</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-label">Display</div>
+        <div class="setting-row">
+          <span>Text size</span>
+          <div class="size-btns" id="size-btns">
+            <button data-size="sm">S</button>
+            <button data-size="md" class="on">M</button>
+            <button data-size="lg">L</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Show morse below notes</span>
+          <button class="tog" id="tog-showmorse" data-on="false">OFF</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="group-label">Text Transform</div>
+        <div class="setting-row">
+          <span>Case</span>
+          <div class="wave-btns" id="transform-preset-btns">
+            <button data-preset="upper" class="on">CAPS</button>
+            <button data-preset="lower">lower</button>
+            <button data-preset="sentence">Sent.</button>
+            <button data-preset="title">Title</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Custom .js</span>
+          <button id="transform-upload-btn" class="copy-btn">upload</button>
+        </div>
+        <div class="setting-row" id="transform-file-row" style="display:none">
+          <span id="transform-file-name" class="meta-stat"></span>
+          <button id="transform-clear-btn" class="copy-btn">remove</button>
+        </div>
+      </div>
+
+      <button id="reset-btn" class="reset-btn">Reset to defaults</button>
+
+    </div>
+  </div>
+
+  <!-- ── Fixed keyboard ── -->
+  <div class="keyboard" id="keyboard">
+
+    <div class="pending-bar">
+      <span id="pend-syms" class="pend-syms"></span>
+      <span id="pend-arrow" class="pend-arrow"></span>
+      <span id="pend-char" class="pend-char"></span>
+    </div>
+
+    <div class="kb-main">
+      <button id="btn-dot"  class="kb-btn dot-btn">
+        <span class="kb-sym">·</span>
+        <span class="kb-lbl">short</span>
+      </button>
+      <button id="btn-dash" class="kb-btn dash-btn">
+        <span class="kb-sym">—</span>
+        <span class="kb-lbl">long</span>
+      </button>
+    </div>
+
+    <div class="kb-util">
+      <button id="btn-left"  class="kb-util-btn">‹</button>
+      <button id="btn-back"  class="kb-util-btn">⌫</button>
+      <button id="btn-space" class="kb-util-btn kb-space">space</button>
+      <button id="btn-clear" class="kb-util-btn kb-clear">clear</button>
+      <button id="btn-right" class="kb-util-btn">›</button>
+    </div>
+
+  </div>
+
+</body>
+</html>
