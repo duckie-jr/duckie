@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0d14" />
+  <title>yourad</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+
+  <!-- Mobile queue overlay (tap to dismiss) -->
+  <div id="queue-overlay" class="queue-overlay"></div>
+
+  <div class="app">
+
+    <header class="header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 22 16" fill="currentColor">
+          <rect x="0"  y="5" width="3" height="6"  rx="1.5"/>
+          <rect x="5"  y="1" width="3" height="14" rx="1.5"/>
+          <rect x="10" y="3" width="3" height="10" rx="1.5"/>
+          <rect x="15" y="0" width="3" height="16" rx="1.5"/>
+          <rect x="20" y="6" width="2" height="4"  rx="1"/>
+        </svg>
+        <span class="logo-text">you<b>rad</b></span>
+      </div>
+
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Search queue…" autocomplete="off" />
+      </div>
+
+      <div class="header-right">
+        <button id="shuffle-btn" class="toggle-btn" title="Shuffle (S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          <span>Shuffle</span>
+        </button>
+        <button id="loop-btn" class="toggle-btn" title="Loop (R)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Loop</span>
+        </button>
+        <button id="theatre-btn" class="toggle-btn desk-only" title="Theatre (T)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="1"/><path d="M8 21h8M12 18v3"/></svg>
+          <span>Theatre</span>
+        </button>
+        <!-- Mobile-only: open queue sheet -->
+        <button id="queue-open-btn" class="toggle-btn mob-only" title="Queue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Queue</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- ── Player ── -->
+      <section class="player-col">
+
+        <!-- Video wrapper: double-tap = play/pause, swipe = prev/next -->
+        <div class="video-wrap" id="video-wrap">
+          <div id="yt-player"></div>
+          <!-- Swipe hint overlays (shown briefly on swipe) -->
+          <div class="swipe-hint swipe-hint--left"  id="swipe-hint-left">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </div>
+          <div class="swipe-hint swipe-hint--right" id="swipe-hint-right">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+          </div>
+        </div>
+
+        <!-- Now playing info -->
+        <div class="track-info">
+          <img id="np-thumb" class="np-thumb" src="" alt="" />
+          <div class="np-text">
+            <div id="np-title"   class="np-title">Select a video to play</div>
+            <div id="np-channel" class="np-channel">—</div>
+          </div>
+          <a id="yt-link" class="yt-link" href="#" target="_blank" rel="noopener noreferrer" title="Open in YouTube">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <span id="track-pos" class="track-pos">— / —</span>
+        </div>
+
+        <!-- Seek bar with hover tooltip -->
+        <div class="seek-row">
+          <span id="t-current" class="t-label">0:00</span>
+          <div class="seek-track" id="seek-track">
+            <div class="seek-buffer" id="seek-buffer"></div>
+            <div class="seek-fill"   id="seek-fill"></div>
+            <div class="seek-thumb"  id="seek-thumb"></div>
+            <div class="seek-tooltip" id="seek-tooltip">0:00</div>
+          </div>
+          <span id="t-duration" class="t-label">0:00</span>
+        </div>
+
+        <!-- Transport controls -->
+        <div class="controls-row">
+          <button id="prev-btn" class="ctrl" title="Previous (P)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button id="play-btn" class="ctrl ctrl-play" title="Play / Pause (Space)">
+            <svg class="icon-play"  viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="icon-pause hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button id="next-btn" class="ctrl" title="Next (N)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+          </button>
+
+          <div class="vol-group">
+            <button id="mute-btn" class="ctrl ctrl-sm" title="Mute (M)">
+              <svg class="icon-vol"  viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              <svg class="icon-mute hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+            <input type="range" id="vol-slider" min="0" max="100" value="80" class="vol-slider" />
+          </div>
+
+          <div class="extra-group">
+            <div class="speed-pills" id="speed-pills">
+              <button class="pill" data-speed="0.5">0.5×</button>
+              <button class="pill active" data-speed="1">1×</button>
+              <button class="pill" data-speed="1.25">1.25×</button>
+              <button class="pill" data-speed="1.5">1.5×</button>
+              <button class="pill" data-speed="2">2×</button>
+            </div>
+            <select id="quality-select" class="quality-select" title="Quality">
+              <option value="default">Auto</option>
+            </select>
+            <button id="cc-btn" class="ctrl ctrl-sm" title="Captions (C)">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/></svg>
+            </button>
+            <select id="cc-lang" class="quality-select hidden" title="Caption language"></select>
+            <button id="fs-btn" class="ctrl ctrl-sm" title="Fullscreen (F)">
+              <svg class="icon-expand"   viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              <svg class="icon-compress hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Queue (desktop sidebar / mobile bottom sheet) ── -->
+      <aside class="queue-col" id="queue-col">
+        <!-- Mobile drag handle -->
+        <div class="drag-handle" id="drag-handle"></div>
+
+        <div class="queue-header">
+          <span class="queue-title">Queue <span id="q-count" class="q-count">0</span></span>
+          <div class="queue-header-actions">
+            <button id="clear-queue-btn" class="icon-btn" title="Clear queue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+            <button id="add-btn" class="add-btn">+ Add</button>
+            <!-- Mobile close -->
+            <button id="queue-close-btn" class="icon-btn mob-only" title="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <form id="add-form" class="add-form hidden">
+          <input type="text" id="url-input" placeholder="YouTube URL or video ID" autocomplete="off" />
+          <div class="add-form-actions">
+            <button type="submit" class="btn-add">Add</button>
+            <button type="button" id="cancel-btn" class="btn-cancel">Cancel</button>
+          </div>
+        </form>
+
+        <ul id="queue-list" class="queue-list"></ul>
+      </aside>
+
+    </main>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="/src/main.js" type="module"></script>
+</body>
+</html>
